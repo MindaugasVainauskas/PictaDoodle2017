@@ -5,16 +5,17 @@
     xmlns:local="using:PicDoodle"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+   
     mc:Ignorable="d">
-
+    <!-- Control bar -->
     <Page.BottomAppBar>
         <AppBar IsOpen="True" IsSticky="True">
             <StackPanel Orientation="Horizontal">
-                <AppBarButton x:Name="New" Icon="Page2" Label="New"></AppBarButton>
-                <AppBarButton x:Name="Photo" Icon="Camera" Label="Camera"></AppBarButton>
-                <AppBarButton x:Name="Open" Icon="OpenFile" Label="Open"></AppBarButton>
-                <AppBarButton x:Name="Save" Icon="Save" Label="Save"></AppBarButton>
-                <AppBarButton x:Name="Share" Label="Share">
+                <AppBarButton x:Name="New" Icon="Page2" Label="New" Click="New_Click"></AppBarButton>
+                <AppBarButton x:Name="Photo" Icon="Camera" Label="Camera" Click="Photo_Click"></AppBarButton>
+                <AppBarButton x:Name="Open" Icon="OpenFile" Label="Open" Click="Open_Click"></AppBarButton>
+                <AppBarButton x:Name="Save" Icon="Save" Label="Save" Click="Save_Click"></AppBarButton>
+                <AppBarButton x:Name="Share" Label="Share" Click="Share_Click">
                     <AppBarButton.Icon>
                         <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE72D;" />
                     </AppBarButton.Icon>
@@ -28,14 +29,26 @@
             <RowDefinition Height="*"></RowDefinition>
         </Grid.RowDefinitions>
 
+        <!-- Header bar -->
         <StackPanel x:Name="spToolMenu" Grid.Row="0" Background="YellowGreen">
             <TextBlock x:Name="tblHeader" Text="PicDoodle 2017"
                        HorizontalAlignment="Center"
                        Style="{ThemeResource HeaderTextBlockStyle}"
                        Margin="10"/>
         </StackPanel>
-        <Grid Grid.Row="1">
-            <InkCanvas x:Name="icvCanvas"></InkCanvas>
+        <!-- Main drawing area -->
+        <Grid x:Name="grdImageCanvas" Grid.Row="1">
+          
+            <!-- Viewbox will hold the preview of camera -->
+            <Viewbox Stretch="Uniform">
+                <CaptureElement x:Name="cePhotoPreview" Width="auto" Height="auto"></CaptureElement>
+            </Viewbox>
+
+            <Image x:Name="imgPicture" Margin="5, 50, 5, 5"></Image>
+            <InkCanvas x:Name="icvCanvas" Margin="5, 50, 5, 5" >
+            </InkCanvas>
+
+
             <InkToolbar x:Name="itbToolBar"
                         VerticalAlignment="Top" TargetInkCanvas="{x:Bind icvCanvas}"
                         InitialControls="None">
