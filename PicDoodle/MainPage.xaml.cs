@@ -40,6 +40,7 @@ namespace PicDoodle
            
         }
 
+        //this event will change sizes of ink canvas and image to fit current window size
         private void GrdImageCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             icvCanvas.Width = Window.Current.Bounds.Width;
@@ -75,7 +76,9 @@ namespace PicDoodle
         private async void Photo_Click(object sender, RoutedEventArgs e)
         {
             CameraCaptureUI photoCapture = new CameraCaptureUI();
-            photoCapture.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Png;
+            photoCapture.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Jpeg;
+            photoCapture.PhotoSettings.CroppedAspectRatio = new Size(5, 4);
+            photoCapture.PhotoSettings.MaxResolution = CameraCaptureUIMaxPhotoResolution.HighestAvailable;
 
             StorageFile photoStored = await photoCapture.CaptureFileAsync(CameraCaptureUIMode.Photo);
 
@@ -86,18 +89,19 @@ namespace PicDoodle
             }
             else
             {
-                //add image at runtime
-                using (IRandomAccessStream imageStream = await photoStored.OpenAsync(FileAccessMode.Read))
-                {
-                    //make new bitmap image
-                    BitmapImage cvBitmapImage = new BitmapImage();
+                //get the image stream from camera
+                IRandomAccessStream imageStream;
+                imageStream = await photoStored.OpenAsync(FileAccessMode.Read);
+                
+                //make new bitmap image
+                BitmapImage cvBitmapImage = new BitmapImage();
 
-                    //set bitmapimage source to file stream
-                    cvBitmapImage.SetSource(imageStream);
-                    //set image source to bitmap image
-                    imgPicture.Source = cvBitmapImage;
+                //set bitmapimage source to file stream
+                cvBitmapImage.SetSource(imageStream);
+                //set image source to bitmap image
+                imgPicture.Source = cvBitmapImage;
 
-                }
+               
             }
 
             
