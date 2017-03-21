@@ -36,14 +36,21 @@ namespace PicDoodle
 
             //load the inkCanvas and set the allowed input devices
             icvCanvas.Loaded += IcvCanvas_Loaded;
+            grdImageCanvas.SizeChanged += GrdImageCanvas_SizeChanged;
            
-           
+        }
+
+        private void GrdImageCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            icvCanvas.Width = Window.Current.Bounds.Width;
+            imgPicture.Width = Window.Current.Bounds.Width;
         }
 
         //method to load inkcanvas supported input devices
         private void IcvCanvas_Loaded(object sender, RoutedEventArgs e)
         {
             icvCanvas.InkPresenter.InputDeviceTypes = Windows.UI.Core.CoreInputDeviceTypes.Mouse | Windows.UI.Core.CoreInputDeviceTypes.Pen | Windows.UI.Core.CoreInputDeviceTypes.Touch;
+            
         }
 
         //load up inktoolbar and start off with the pen as active tool in it.
@@ -76,6 +83,21 @@ namespace PicDoodle
             if (photoStored == null)
             {
                 return;
+            }
+            else
+            {
+                //add image at runtime
+                using (IRandomAccessStream imageStream = await photoStored.OpenAsync(FileAccessMode.Read))
+                {
+                    //make new bitmap image
+                    BitmapImage cvBitmapImage = new BitmapImage();
+
+                    //set bitmapimage source to file stream
+                    cvBitmapImage.SetSource(imageStream);
+                    //set image source to bitmap image
+                    imgPicture.Source = cvBitmapImage;
+
+                }
             }
 
             
@@ -110,6 +132,7 @@ namespace PicDoodle
                     cvBitmapImage.SetSource(imageStream);
                     //set image source to bitmap image
                     imgPicture.Source = cvBitmapImage;
+                    imgPicture.Stretch = Stretch.Fill;
                    
                 }
                 
