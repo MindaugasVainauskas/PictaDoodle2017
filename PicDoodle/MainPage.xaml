@@ -9,7 +9,7 @@
     mc:Ignorable="d">
     <!-- Control bar -->
     <Page.BottomAppBar>
-        <AppBar IsOpen="True" IsSticky="True">
+        <AppBar IsOpen="True" IsSticky="True" Margin="3">
             <StackPanel Orientation="Horizontal">
                 <AppBarButton x:Name="New" Icon="Page2" Label="New" Click="New_Click"></AppBarButton>
                 <AppBarButton x:Name="Photo" Icon="Camera" Label="Camera" Click="Photo_Click"></AppBarButton>
@@ -39,13 +39,8 @@
         <!-- Main drawing area -->
         <Grid x:Name="grdImageCanvas" Grid.Row="1">
           
-            <!-- Viewbox will hold the preview of camera -->
-            <Viewbox Stretch="Uniform">
-                <CaptureElement x:Name="cePhotoPreview" Width="auto" Height="auto"></CaptureElement>
-            </Viewbox>
-
-            <Image x:Name="imgPicture" Margin="5, 50, 5, 5"></Image>
-            <InkCanvas x:Name="icvCanvas" Margin="5, 50, 5, 5" >
+            <Image x:Name="imgPicture" Margin="5, 50, 10, 10"></Image>
+            <InkCanvas x:Name="icvCanvas" Margin="5, 50, 10, 10" >                
             </InkCanvas>
 
 
