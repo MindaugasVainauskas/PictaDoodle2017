@@ -118,7 +118,8 @@ namespace PicDoodle
                
                 //get the image stream from camera
                 IRandomAccessStream imageStream;
-                imageStream = await imageFile.OpenAsync(FileAccessMode.ReadWrite);
+                
+                imageStream = await imageFile.OpenAsync(FileAccessMode.Read);
                 
                 //make new bitmap image
                 cvBitmapImage = new BitmapImage();
@@ -133,6 +134,20 @@ namespace PicDoodle
                 var streamWithContent = await rasr.OpenReadAsync();
                 _buffer = new byte[streamWithContent.Size];
                 await streamWithContent.ReadAsync(_buffer.AsBuffer(), (uint)streamWithContent.Size, InputStreamOptions.None);
+
+                //open up local application folder
+                StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+
+                //create temporary image in local application folder. This image will get overwritten every time image is picked
+                if (await localFolder.GetFileAsync("tempImage.png") != null)
+                {
+                    File.Delete("tempImage.png");
+                }
+
+                StorageFile localImageFile = await localFolder.CreateFileAsync("tempImage.png", CreationCollisionOption.ReplaceExisting);
+
+                //write out image into file from buffer
+                await FileIO.WriteBytesAsync(localImageFile, _buffer);
 
 
             }
@@ -163,7 +178,7 @@ namespace PicDoodle
             {
                
                 //add image at runtime
-                using (IRandomAccessStream imageStream = await imageFile.OpenAsync(FileAccessMode.ReadWrite))
+                using (IRandomAccessStream imageStream = await imageFile.OpenAsync(FileAccessMode.Read))
                 {
 
                     //make new bitmap image
@@ -173,15 +188,31 @@ namespace PicDoodle
                     cvBitmapImage.SetSource(imageStream);
                     //set image source to bitmap image
                     imgPicture.Source = cvBitmapImage;
-                    imgPicture.Stretch = Stretch.Fill;
+                    imgPicture.Stretch = Stretch.Fill;                    
 
-
-                    
+                    //open random access reference stream from file stream
                     RandomAccessStreamReference rasr = RandomAccessStreamReference.CreateFromStream(imageStream);
                     var streamWithContent = await rasr.OpenReadAsync();
+                    //write the file stream into byte array
                     _buffer = new byte[streamWithContent.Size];
                     await streamWithContent.ReadAsync(_buffer.AsBuffer(), (uint)streamWithContent.Size, InputStreamOptions.None);
 
+
+                    //open up local application folder
+                    StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+
+                    //create temporary image in local application folder. This image will get overwritten every time image is picked
+                    if (await localFolder.GetFileAsync("tempImage.png") != null)
+                    {
+                        File.Delete("tempImage.png");
+                    }
+
+                    StorageFile localImageFile = await localFolder.CreateFileAsync("tempImage.png", CreationCollisionOption.ReplaceExisting);
+                    
+                    //write out image into file from buffer
+                    await FileIO.WriteBytesAsync(localImageFile, _buffer);
+
+                    
                 }
 
 
@@ -216,20 +247,30 @@ namespace PicDoodle
                
                 ds.Clear(Colors.White);
 
-                var editableImage = await CanvasBitmap.LoadAsync(cvDevice, imageFile.Path);
-                //var editableImage = CanvasBitmap.CreateFromBytes(cvDevice.Device, _buffer,
-                //                                                 (int)imgPicture.Width, (int)imgPicture.Height,
-                //                                                 Windows.Graphics.DirectX.DirectXPixelFormat.B8G8R8A8UIntNormalized);
 
-                //var swBmp = new SoftwareBitmap(BitmapPixelFormat.Bgra8, (int)cvrTarget.SizeInPixels.Width, 
-                //                                (int)cvrTarget.SizeInPixels.Height);
+                try
+                {
+                    //get image from temporary local file
+                    StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+                    StorageFile localImageFile = await localFolder.GetFileAsync("tempImage.png");
 
-                //swBmp.CopyFromBuffer(_buffer.AsBuffer/*());*/
-              //  var editableImage = CanvasBitmap.CreateFromSoftwareBitmap(cvDevice.Device, swBmp);
+                    //set editable image to path inside local folder
+                    var editableImage = await CanvasBitmap.LoadAsync(cvDevice, localImageFile.Path);
 
-                ds.DrawImage(editableImage, rectangle);
-                ds.DrawInk(icvCanvas.InkPresenter.StrokeContainer.GetStrokes());
+                    //draw the image within given rectangle size
+                    ds.DrawImage(editableImage, rectangle);
+                    //draw ink from inkcanvas
+                    ds.DrawInk(icvCanvas.InkPresenter.StrokeContainer.GetStrokes());
+
+                   
+                }                
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    throw;
                 }
+               
+            }
 
                 using (var fStream = await mergedImage.OpenAsync(FileAccessMode.ReadWrite))
                 {
@@ -245,8 +286,15 @@ namespace PicDoodle
         private void Share_Click(object sender, RoutedEventArgs e)
         {
             //will implement sharing function later
+            Windows.ApplicationModel.DataTransfer.DataTransferManager.ShowShareUI();
+
+            Windows.ApplicationModel.DataTransfer.DataTransferManager.GetForCurrentView().DataRequested += MainPage_DataRequested;
         }
 
-        
+        //event to handle when share interface opens
+        private void MainPage_DataRequested(Windows.ApplicationModel.DataTransfer.DataTransferManager sender, Windows.ApplicationModel.DataTransfer.DataRequestedEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
