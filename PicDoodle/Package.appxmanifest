@@ -21,13 +21,14 @@
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
       <Extensions>
-        <uap:Extension Category="windows.fileSavePicker">
-          <uap:FileSavePicker>
+        <uap:Extension Category="windows.shareTarget">
+          <uap:ShareTarget Description="Image sharing">
             <uap:SupportedFileTypes>
               <uap:FileType>.png</uap:FileType>
               <uap:FileType>.jpg</uap:FileType>
             </uap:SupportedFileTypes>
-          </uap:FileSavePicker>
+            <uap:DataFormat>Bitmap</uap:DataFormat>
+          </uap:ShareTarget>
         </uap:Extension>
         <uap:Extension Category="windows.fileOpenPicker">
           <uap:FileOpenPicker>
@@ -36,6 +37,14 @@
               <uap:FileType>.png</uap:FileType>
             </uap:SupportedFileTypes>
           </uap:FileOpenPicker>
+        </uap:Extension>
+        <uap:Extension Category="windows.fileSavePicker">
+          <uap:FileSavePicker>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.png</uap:FileType>
+              <uap:FileType>.jpg</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileSavePicker>
         </uap:Extension>
       </Extensions>
     </Application>

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Graphics.Imaging;
@@ -129,10 +130,12 @@ namespace PicDoodle
                 //set image source to bitmap image
                 imgPicture.Source = cvBitmapImage;
 
-
-                RandomAccessStreamReference rasr = RandomAccessStreamReference.CreateFromStream(imageStream);//.CreateFromUri(cvBitmapImage.UriSource);
+                //create stream reference from image stream(From camera capture)
+                RandomAccessStreamReference rasr = RandomAccessStreamReference.CreateFromStream(imageStream);
                 var streamWithContent = await rasr.OpenReadAsync();
+                //create the buffer from the image stream
                 _buffer = new byte[streamWithContent.Size];
+                //fill the buffer
                 await streamWithContent.ReadAsync(_buffer.AsBuffer(), (uint)streamWithContent.Size, InputStreamOptions.None);
 
                 //open up local application folder
@@ -193,8 +196,9 @@ namespace PicDoodle
                     //open random access reference stream from file stream
                     RandomAccessStreamReference rasr = RandomAccessStreamReference.CreateFromStream(imageStream);
                     var streamWithContent = await rasr.OpenReadAsync();
-                    //write the file stream into byte array
+                    //create byte array
                     _buffer = new byte[streamWithContent.Size];
+                    //fill the array
                     await streamWithContent.ReadAsync(_buffer.AsBuffer(), (uint)streamWithContent.Size, InputStreamOptions.None);
 
 
@@ -204,9 +208,11 @@ namespace PicDoodle
                     //create temporary image in local application folder. This image will get overwritten every time image is picked
                     if (await localFolder.GetFileAsync("tempImage.png") != null)
                     {
+                        //delete temp image if exists
                         File.Delete("tempImage.png");
                     }
 
+                    //create new temp image for use within application data local folder
                     StorageFile localImageFile = await localFolder.CreateFileAsync("tempImage.png", CreationCollisionOption.ReplaceExisting);
                     
                     //write out image into file from buffer
@@ -272,6 +278,7 @@ namespace PicDoodle
                
             }
 
+            //save merged image into single file
                 using (var fStream = await mergedImage.OpenAsync(FileAccessMode.ReadWrite))
                 {
                     await cvrTarget.SaveAsync(fStream, CanvasBitmapFileFormat.Png, 1f);
@@ -285,16 +292,41 @@ namespace PicDoodle
         //event handler to share image
         private void Share_Click(object sender, RoutedEventArgs e)
         {
-            //will implement sharing function later
-            Windows.ApplicationModel.DataTransfer.DataTransferManager.ShowShareUI();
 
-            Windows.ApplicationModel.DataTransfer.DataTransferManager.GetForCurrentView().DataRequested += MainPage_DataRequested;
+            RegisterForSharing();
+
+        }
+
+        //method to handle registration for sharing and share event.
+        private void RegisterForSharing()
+        {
+            DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
+
+            dataTransferManager.DataRequested += MainPage_DataRequested;
         }
 
         //event to handle when share interface opens
-        private void MainPage_DataRequested(Windows.ApplicationModel.DataTransfer.DataTransferManager sender, Windows.ApplicationModel.DataTransfer.DataRequestedEventArgs args)
+        private async void MainPage_DataRequested(DataTransferManager sender, DataRequestedEventArgs args)
         {
-            throw new NotImplementedException();
+            //start up request for an image
+            DataRequest imageRequest = args.Request;
+
+            //set the title for an image. Title is mandatory!
+            imageRequest.Data.Properties.Title = "Doodled image";
+
+
+            DataRequestDeferral requestDeferral = imageRequest.GetDeferral();
+
+
+            try
+            {
+                //this will select the image file for sharing
+            }
+            finally
+            {
+                //complete the deferral
+                requestDeferral.Complete();
+            }
         }
     }
 }
