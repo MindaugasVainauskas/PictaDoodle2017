@@ -15,6 +15,7 @@ using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 using Windows.UI;
+using Windows.UI.Popups;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -298,21 +299,32 @@ namespace PicDoodle
             //save merged image into single file
             using (_fStream = await mergedImage.OpenAsync(FileAccessMode.ReadWrite))
             {
-                await cvrTarget.SaveAsync(_fStream, CanvasBitmapFileFormat.Png, 1f);               
+                await cvrTarget.SaveAsync(_fStream, CanvasBitmapFileFormat.Png, 1f);
             }
 
+           
+            MessageDialog message = new MessageDialog("Image saved!", "Image Saved");
 
+            await CreateTempImage(mergedImage);
+
+        }
+
+        private static async Task CreateTempImage(StorageFile mergedImage)
+        {
             WriteableBitmap wbmp = new WriteableBitmap(30, 30);
             WriteableBitmap shareBmp = new WriteableBitmap(500, 400);
-            wbmp.SetSource(await mergedImage.OpenAsync(FileAccessMode.ReadWrite));
-            shareBmp.SetSource(await mergedImage.OpenAsync(FileAccessMode.ReadWrite));
+            wbmp.SetSource(await mergedImage.OpenAsync(FileAccessMode.Read));
+            shareBmp.SetSource(await mergedImage.OpenAsync(FileAccessMode.Read));
 
             StorageFolder shareFolder = ApplicationData.Current.LocalFolder;
 
-            if (await shareFolder.GetFileAsync("shareThumb.png") != null)
+
+            var checkFileExists = await shareFolder.GetFileAsync("shareThumb.png");
+
+            if (File.Exists(checkFileExists.Path))
             {
-                File.Delete("shareThumb.png");
-                File.Delete("shareImage.png");
+                File.Delete("\\shareThumb.png");
+                File.Delete("\\shareImage.png");
             }
 
             StorageFile shareThumb = await shareFolder.CreateFileAsync("shareThumb.png", CreationCollisionOption.ReplaceExisting);
@@ -326,7 +338,7 @@ namespace PicDoodle
 
                 await pixelStream.ReadAsync(wbmpBytes, 0, wbmpBytes.Length);
 
-                bmpEnc.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore, 
+                bmpEnc.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore,
                                     (uint)wbmp.PixelWidth, (uint)wbmp.PixelHeight, 96.0, 96.0, wbmpBytes);
 
                 await bmpEnc.FlushAsync();
@@ -401,6 +413,8 @@ namespace PicDoodle
                 //complete the deferral
                 requestDeferral.Complete();
             }
+
+            MessageDialog message = new MessageDialog("Image shared successfully");
         }
     }
 }
