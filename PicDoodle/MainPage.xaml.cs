@@ -39,6 +39,9 @@ namespace PicDoodle
 
         StorageFile imageFile;
 
+
+        IRandomAccessStream _fStream;
+
         public MainPage()
         {
             this.InitializeComponent();         
@@ -50,8 +53,8 @@ namespace PicDoodle
 
         private void MainPage_Loaded(object sender, RoutedEventArgs e)
         {
-            //here I'm simply settign prefered size of window that application should launch in if on pc.
-            ApplicationView.PreferredLaunchViewSize = new Size(400, 650);
+            //here I'm simply setting prefered size of window that application should launch in if on pc.
+            ApplicationView.PreferredLaunchViewSize = new Size(600, 650);
             ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
            
 
@@ -64,11 +67,17 @@ namespace PicDoodle
         //this event will change sizes of ink canvas and image to fit current window size
         private void GrdImageCanvas_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            icvCanvas.Width = Window.Current.Bounds.Width;
-            icvCanvas.Height = Window.Current.Bounds.Width * 0.8; 
+            icvCanvas.Width = Window.Current.Bounds.Width-100;
+            icvCanvas.Height = Window.Current.Bounds.Width * 0.8;
+            icvCanvas.MaxWidth = 500;
+            icvCanvas.MaxHeight = 400;
+          
             //not sure which width setting would be more optimal for image          
-            imgPicture.Width = Window.Current.Bounds.Width;
-            imgPicture.Height = Window.Current.Bounds.Width * 0.8;           
+            imgPicture.Width = Window.Current.Bounds.Width-100;
+            imgPicture.Height = Window.Current.Bounds.Width * 0.8;
+            imgPicture.MaxWidth = 500;
+            imgPicture.MaxHeight = 400;
+           
         }
 
         //method to load inkcanvas supported input devices
@@ -93,6 +102,9 @@ namespace PicDoodle
             
             //set image source to null to wipe current image
             imgPicture.Source = null;
+
+            //image stream set to null.
+            _fStream = null;
 
         }
 
@@ -235,22 +247,27 @@ namespace PicDoodle
             //should merge inkcanvas strokes and underlying image to single image file
             //after merging it will save the resulting combo file to picture gallery
 
+            await SaveImageAsync();
+        }
+
+        private async Task SaveImageAsync()
+        {
             //Get the picture gallery folder
-            StorageFolder imageStorage = KnownFolders.SavedPictures;
+            StorageFolder imageStorage = await KnownFolders.SavedPictures.CreateFolderAsync("DoodlePic", CreationCollisionOption.OpenIfExists);
             //create file for new image
             var mergedImage = await imageStorage.CreateFileAsync("pictaDoodle_" + DateTime.Now.ToFileTime() + ".png", CreationCollisionOption.ReplaceExisting);
 
             //create canvasDevice
             CanvasDevice cvDevice = CanvasDevice.GetSharedDevice();
             //Create canvas render target
-            CanvasRenderTarget cvrTarget = new CanvasRenderTarget(cvDevice, (int)icvCanvas.Width, (int)(icvCanvas.Width*0.8), 96);
-                       
+            CanvasRenderTarget cvrTarget = new CanvasRenderTarget(cvDevice, (int)icvCanvas.Width, (int)(icvCanvas.Width * 0.8), 96);
+
             //start the drawing session
             using (var ds = cvrTarget.CreateDrawingSession())
             {
                 //set destination rectangle that will determine the size of the editable image in application
-                Rect rectangle = new Rect(0, 0, icvCanvas.Width, (icvCanvas.Width*0.8));
-               
+                Rect rectangle = new Rect(0, 0, icvCanvas.Width, (icvCanvas.Width * 0.8));
+
                 ds.Clear(Colors.White);
 
 
@@ -268,59 +285,116 @@ namespace PicDoodle
                     //draw ink from inkcanvas
                     ds.DrawInk(icvCanvas.InkPresenter.StrokeContainer.GetStrokes());
 
-                   
-                }                
+
+                }
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.Message);
                     throw;
                 }
-               
+
             }
 
             //save merged image into single file
-                using (var fStream = await mergedImage.OpenAsync(FileAccessMode.ReadWrite))
-                {
-                    await cvrTarget.SaveAsync(fStream, CanvasBitmapFileFormat.Png, 1f);
-                }                
+            using (_fStream = await mergedImage.OpenAsync(FileAccessMode.ReadWrite))
+            {
+                await cvrTarget.SaveAsync(_fStream, CanvasBitmapFileFormat.Png, 1f);               
             }
-    
 
-            
 
-        
-        //event handler to share image
-        private void Share_Click(object sender, RoutedEventArgs e)
-        {
+            WriteableBitmap wbmp = new WriteableBitmap(30, 30);
+            WriteableBitmap shareBmp = new WriteableBitmap(500, 400);
+            wbmp.SetSource(await mergedImage.OpenAsync(FileAccessMode.ReadWrite));
+            shareBmp.SetSource(await mergedImage.OpenAsync(FileAccessMode.ReadWrite));
 
-            RegisterForSharing();
+            StorageFolder shareFolder = ApplicationData.Current.LocalFolder;
 
+            if (await shareFolder.GetFileAsync("shareThumb.png") != null)
+            {
+                File.Delete("shareThumb.png");
+                File.Delete("shareImage.png");
+            }
+
+            StorageFile shareThumb = await shareFolder.CreateFileAsync("shareThumb.png", CreationCollisionOption.ReplaceExisting);
+            StorageFile shareImage = await shareFolder.CreateFileAsync("shareImage.png", CreationCollisionOption.ReplaceExisting);
+
+            using (IRandomAccessStream bmpStream = await shareThumb.OpenAsync(FileAccessMode.ReadWrite))
+            {
+                BitmapEncoder bmpEnc = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, bmpStream);
+                Stream pixelStream = wbmp.PixelBuffer.AsStream();
+                byte[] wbmpBytes = new byte[pixelStream.Length];
+
+                await pixelStream.ReadAsync(wbmpBytes, 0, wbmpBytes.Length);
+
+                bmpEnc.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore, 
+                                    (uint)wbmp.PixelWidth, (uint)wbmp.PixelHeight, 96.0, 96.0, wbmpBytes);
+
+                await bmpEnc.FlushAsync();
+            }
+
+            using (IRandomAccessStream bmpStream = await shareImage.OpenAsync(FileAccessMode.ReadWrite))
+            {
+                BitmapEncoder bmpEnc = await BitmapEncoder.CreateAsync(BitmapEncoder.PngEncoderId, bmpStream);
+                Stream pixelStream = shareBmp.PixelBuffer.AsStream();
+                byte[] wbmpBytes = new byte[pixelStream.Length];
+
+                await pixelStream.ReadAsync(wbmpBytes, 0, wbmpBytes.Length);
+
+                bmpEnc.SetPixelData(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Ignore,
+                                    (uint)wbmp.PixelWidth, (uint)wbmp.PixelHeight, 96.0, 96.0, wbmpBytes);
+
+                await bmpEnc.FlushAsync();
+            }
         }
 
+
+        //event handler to share image
+        private async void Share_Click(object sender, RoutedEventArgs e)
+        {
+            //if image has not been saved yet then save it
+            if (_fStream == null)
+            {
+                await SaveImageAsync();
+            }
+           
+            RegisterForSharing();
+            DataTransferManager.ShowShareUI();
+        }
+
+        DataTransferManager dataTransMgr;
         //method to handle registration for sharing and share event.
         private void RegisterForSharing()
         {
-            DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
+            //DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
+            dataTransMgr = DataTransferManager.GetForCurrentView();
 
-            dataTransferManager.DataRequested += MainPage_DataRequested;
+            dataTransMgr.DataRequested += MainPage_DataRequested;
         }
 
+        DataRequest imageRequest;
         //event to handle when share interface opens
         private async void MainPage_DataRequested(DataTransferManager sender, DataRequestedEventArgs args)
         {
+            //DataTransferManager.ShowShareUI();
             //start up request for an image
-            DataRequest imageRequest = args.Request;
+            imageRequest = args.Request;
 
             //set the title for an image. Title is mandatory!
-            imageRequest.Data.Properties.Title = "Doodled image";
-
+            imageRequest.Data.Properties.Title = "Sharing doodled image";
 
             DataRequestDeferral requestDeferral = imageRequest.GetDeferral();
 
-
             try
             {
+
                 //this will select the image file for sharing
+                //create thumbnail for sharing
+                StorageFile thumbFile = await ApplicationData.Current.LocalFolder.GetFileAsync("shareThumb.png");
+                imageRequest.Data.Properties.Thumbnail = RandomAccessStreamReference.CreateFromFile(thumbFile); // RandomAccessStreamReference.CreateFromStream(_fStream);
+                //set image from file for sharing
+                StorageFile shareImage = await ApplicationData.Current.LocalFolder.GetFileAsync("shareImage.png");
+                imageRequest.Data.SetBitmap(RandomAccessStreamReference.CreateFromFile(shareImage));// RandomAccessStreamReference.CreateFromStream(_fStream));
+
             }
             finally
             {
