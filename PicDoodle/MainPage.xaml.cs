@@ -39,8 +39,6 @@ namespace PicDoodle
         BitmapImage cvBitmapImage;
 
         StorageFile imageFile;
-
-
         IRandomAccessStream _fStream;
 
         public MainPage()
@@ -114,6 +112,11 @@ namespace PicDoodle
         //event handler to open camera and take a picture
         private async void Photo_Click(object sender, RoutedEventArgs e)
         {
+            if (imgPicture.Source != null)
+            {
+                _fStream = null;
+            }
+
             CameraCaptureUI photoCapture = new CameraCaptureUI();
             photoCapture.PhotoSettings.Format = CameraCaptureUIPhotoFormat.Png;           
             photoCapture.PhotoSettings.CroppedAspectRatio = new Size(5, 4);
@@ -154,18 +157,20 @@ namespace PicDoodle
                 //open up local application folder
                 StorageFolder localFolder = ApplicationData.Current.LocalFolder;
 
+                Debug.WriteLine("Photo open local folder: --- "+ApplicationData.Current.LocalFolder.Path);
+
                 //create temporary image in local application folder. This image will get overwritten every time image is picked
-                if (await localFolder.GetFileAsync("tempImage.png") != null)
+                if (await localFolder.TryGetItemAsync("tempImage.png") != null)
                 {
-                    File.Delete("tempImage.png");
+                    //File.Delete("tempImage.png");
+                    await (await localFolder.GetItemAsync("tempImage.png")).DeleteAsync(StorageDeleteOption.PermanentDelete);                    
                 }
 
                 StorageFile localImageFile = await localFolder.CreateFileAsync("tempImage.png", CreationCollisionOption.ReplaceExisting);
 
                 //write out image into file from buffer
                 await FileIO.WriteBytesAsync(localImageFile, _buffer);
-
-
+                
             }
 
             
@@ -176,6 +181,11 @@ namespace PicDoodle
         //event handler to pick picture from gallery
         private async void Open_Click(object sender, RoutedEventArgs e)
         {
+            if (imgPicture.Source != null)
+            {
+                _fStream = null;
+            }
+
             //open file picker
             var imagePicker = new FileOpenPicker();
 
@@ -217,12 +227,15 @@ namespace PicDoodle
 
                     //open up local application folder
                     StorageFolder localFolder = ApplicationData.Current.LocalFolder;
+                    Debug.WriteLine("Open click local folder: --- "+ApplicationData.Current.LocalFolder.Path);
 
                     //create temporary image in local application folder. This image will get overwritten every time image is picked
-                    if (await localFolder.GetFileAsync("tempImage.png") != null)
+                    if (await localFolder.TryGetItemAsync("tempImage.png") != null)
                     {
                         //delete temp image if exists
-                        File.Delete("tempImage.png");
+                       // File.Delete("tempImage.png");
+                        await (await localFolder.GetItemAsync("tempImage.png")).DeleteAsync(StorageDeleteOption.PermanentDelete);
+                        
                     }
 
                     //create new temp image for use within application data local folder
@@ -231,7 +244,6 @@ namespace PicDoodle
                     //write out image into file from buffer
                     await FileIO.WriteBytesAsync(localImageFile, _buffer);
 
-                    
                 }
 
 
@@ -287,6 +299,9 @@ namespace PicDoodle
                     ds.DrawInk(icvCanvas.InkPresenter.StrokeContainer.GetStrokes());
 
 
+                    //close off open async methods to release the resources.
+                    ds.Dispose();
+                    editableImage.Dispose();
                 }
                 catch (Exception ex)
                 {
@@ -302,9 +317,13 @@ namespace PicDoodle
                 await cvrTarget.SaveAsync(_fStream, CanvasBitmapFileFormat.Png, 1f);
             }
 
-           
-            MessageDialog message = new MessageDialog("Image saved!", "Image Saved");
+            
+            //show message feedback to the user
+            var message = new MessageDialog("Image has been saved successfully");
+            message.Title = "Success!";            
+            await message.ShowAsync();
 
+            
             await CreateTempImage(mergedImage);
 
         }
@@ -367,10 +386,11 @@ namespace PicDoodle
             if (_fStream == null)
             {
                 await SaveImageAsync();
+                
             }
            
             RegisterForSharing();
-            DataTransferManager.ShowShareUI();
+            DataTransferManager.ShowShareUI();           
         }
 
         DataTransferManager dataTransMgr;
@@ -414,7 +434,7 @@ namespace PicDoodle
                 requestDeferral.Complete();
             }
 
-            MessageDialog message = new MessageDialog("Image shared successfully");
+
         }
     }
 }
