@@ -111,7 +111,7 @@ namespace PicDoodle
 
         //event handler to open camera and take a picture
         private async void Photo_Click(object sender, RoutedEventArgs e)
-        {
+        {            
             if (imgPicture.Source != null)
             {
                 _fStream = null;
@@ -162,7 +162,6 @@ namespace PicDoodle
                 //create temporary image in local application folder. This image will get overwritten every time image is picked
                 if (await localFolder.TryGetItemAsync("tempImage.png") != null)
                 {
-                    //File.Delete("tempImage.png");
                     await (await localFolder.GetItemAsync("tempImage.png")).DeleteAsync(StorageDeleteOption.PermanentDelete);                    
                 }
 
@@ -232,8 +231,7 @@ namespace PicDoodle
                     //create temporary image in local application folder. This image will get overwritten every time image is picked
                     if (await localFolder.TryGetItemAsync("tempImage.png") != null)
                     {
-                        //delete temp image if exists
-                       // File.Delete("tempImage.png");
+                        //delete temp image if exists                       
                         await (await localFolder.GetItemAsync("tempImage.png")).DeleteAsync(StorageDeleteOption.PermanentDelete);
                         
                     }
@@ -396,8 +394,7 @@ namespace PicDoodle
         DataTransferManager dataTransMgr;
         //method to handle registration for sharing and share event.
         private void RegisterForSharing()
-        {
-            //DataTransferManager dataTransferManager = DataTransferManager.GetForCurrentView();
+        {            
             dataTransMgr = DataTransferManager.GetForCurrentView();
 
             dataTransMgr.DataRequested += MainPage_DataRequested;
@@ -406,8 +403,7 @@ namespace PicDoodle
         DataRequest imageRequest;
         //event to handle when share interface opens
         private async void MainPage_DataRequested(DataTransferManager sender, DataRequestedEventArgs args)
-        {
-            //DataTransferManager.ShowShareUI();
+        {            
             //start up request for an image
             imageRequest = args.Request;
 
@@ -417,15 +413,13 @@ namespace PicDoodle
             DataRequestDeferral requestDeferral = imageRequest.GetDeferral();
 
             try
-            {
-
-                //this will select the image file for sharing
+            {                
                 //create thumbnail for sharing
                 StorageFile thumbFile = await ApplicationData.Current.LocalFolder.GetFileAsync("shareThumb.png");
-                imageRequest.Data.Properties.Thumbnail = RandomAccessStreamReference.CreateFromFile(thumbFile); // RandomAccessStreamReference.CreateFromStream(_fStream);
+                imageRequest.Data.Properties.Thumbnail = RandomAccessStreamReference.CreateFromFile(thumbFile); 
                 //set image from file for sharing
                 StorageFile shareImage = await ApplicationData.Current.LocalFolder.GetFileAsync("shareImage.png");
-                imageRequest.Data.SetBitmap(RandomAccessStreamReference.CreateFromFile(shareImage));// RandomAccessStreamReference.CreateFromStream(_fStream));
+                imageRequest.Data.SetBitmap(RandomAccessStreamReference.CreateFromFile(shareImage));
 
             }
             finally

@@ -43,7 +43,6 @@
             <InkCanvas x:Name="icvCanvas" Margin="5, 50, 10, 10" >                
             </InkCanvas>
 
-
             <InkToolbar x:Name="itbToolBar"
                         VerticalAlignment="Top" TargetInkCanvas="{x:Bind icvCanvas}"
                         InitialControls="None">
