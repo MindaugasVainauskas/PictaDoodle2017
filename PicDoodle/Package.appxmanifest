@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="64237M.Vainauskas.PictADoodle" Publisher="CN=6DD4C949-6B97-4747-BFA5-F8EDA6E71C7E" Version="1.1.9.0" />
+  <Identity Name="64237M.Vainauskas.PictADoodle" Publisher="CN=6DD4C949-6B97-4747-BFA5-F8EDA6E71C7E" Version="1.1.10.0" />
   <mp:PhoneIdentity PhoneProductId="6123d0c2-b969-4cb6-8859-8b0507522b77" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>PictADoodle</DisplayName>
