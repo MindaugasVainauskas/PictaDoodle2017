@@ -31,7 +31,7 @@
 
         <!-- Header bar -->
         <StackPanel x:Name="spToolMenu" Grid.Row="0" Background="YellowGreen">
-            <TextBlock x:Name="tblHeader" Text="PicDoodle 2017"
+            <TextBlock x:Name="tblHeader" Text="PictADoodle"
                        HorizontalAlignment="Center"
                        Style="{ThemeResource HeaderTextBlockStyle}"
                        Margin="10"/>

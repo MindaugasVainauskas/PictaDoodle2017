@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="6123d0c2-b969-4cb6-8859-8b0507522b77" Publisher="CN=Mindaugas" Version="1.0.0.0" />
+  <Identity Name="64237M.Vainauskas.PictADoodle" Publisher="CN=6DD4C949-6B97-4747-BFA5-F8EDA6E71C7E" Version="1.1.1.0" />
   <mp:PhoneIdentity PhoneProductId="6123d0c2-b969-4cb6-8859-8b0507522b77" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
-    <DisplayName>PicDoodle</DisplayName>
-    <PublisherDisplayName>Mindaugas</PublisherDisplayName>
+    <DisplayName>PictADoodle</DisplayName>
+    <PublisherDisplayName>M. Vainauskas</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Dependencies>
@@ -15,8 +15,8 @@
   </Resources>
   <Applications>
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="PicDoodle.App">
-      <uap:VisualElements DisplayName="PicDoodle" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="PicDoodle" BackgroundColor="transparent">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png">
+      <uap:VisualElements DisplayName="PictADoodle" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="PictADoodle is an image and photo editing application that allows to paint on images and photos and then save and share them." BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" ShortName="PictADoodle">
         </uap:DefaultTile>
         <uap:SplashScreen Image="Assets\SplashScreen.png" />
       </uap:VisualElements>
