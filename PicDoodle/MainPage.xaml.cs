@@ -264,7 +264,7 @@ namespace PicDoodle
         private async Task SaveImageAsync()
         {
             //Get the picture gallery folder
-            StorageFolder imageStorage = await KnownFolders.SavedPictures.CreateFolderAsync("DoodlePic", CreationCollisionOption.OpenIfExists);
+            StorageFolder imageStorage = await KnownFolders.SavedPictures.CreateFolderAsync("PictADoodle", CreationCollisionOption.OpenIfExists);
             //create file for new image
             var mergedImage = await imageStorage.CreateFileAsync("pictaDoodle_" + DateTime.Now.ToFileTime() + ".png", CreationCollisionOption.ReplaceExisting);
 
@@ -334,14 +334,12 @@ namespace PicDoodle
             shareBmp.SetSource(await mergedImage.OpenAsync(FileAccessMode.Read));
 
             StorageFolder shareFolder = ApplicationData.Current.LocalFolder;
+                        
 
-
-            var checkFileExists = await shareFolder.GetFileAsync("shareThumb.png");
-
-            if (File.Exists(checkFileExists.Path))
+            if ((await shareFolder.TryGetItemAsync("shareThumb.png")) != null)
             {
-                File.Delete("\\shareThumb.png");
-                File.Delete("\\shareImage.png");
+                await (await shareFolder.GetItemAsync("shareThumb.png")).DeleteAsync(StorageDeleteOption.PermanentDelete);
+                await (await shareFolder.GetItemAsync("shareImage.png")).DeleteAsync(StorageDeleteOption.PermanentDelete);              
             }
 
             StorageFile shareThumb = await shareFolder.CreateFileAsync("shareThumb.png", CreationCollisionOption.ReplaceExisting);
